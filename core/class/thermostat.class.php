@@ -333,19 +333,33 @@ class thermostat extends eqLogic {
 		$thermostat->setConfiguration('endDate', date('Y-m-d H:i:s', strtotime('+' . ceil($cycle * 0.9) . ' min ' . date('Y-m-d H:i:s'))));
 		log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Durée du cycle', __FILE__) . '  : ' . $duration);
 
-		// Smartstop : si un arrêt agenda est prévu avant que le radiateur soit considéré chaud, on ne relance pas
+		// Smartstop : si un arrêt agenda est prévu avant la fin du prochain cycle, on ne relance pas
+		// Si le radiateur est froid (inactif), on prend en compte le temps de montée en température (threshold_heathot)
 		if ($thermostat->getConfiguration('smart_stop') == 1) {
 			$nextStopDate = $thermostat->getNextStopDate();
 			if ($nextStopDate !== null) {
-				$thresholdHeatHot = $thermostat->getConfiguration('threshold_heathot', 100);
-				$minHeatDuration = round(($thresholdHeatHot * $cycle) / 100);
 				$timeUntilStop = (strtotime($nextStopDate) - strtotime('now')) / 60;
-				if ($timeUntilStop <= $minHeatDuration) {
-					log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Smartstop : arrêt prévu dans', __FILE__) . ' ' . round($timeUntilStop) . ' min, ' . __('radiateur chaud après', __FILE__) . ' ' . $minHeatDuration . ' min (' . $thresholdHeatHot . '% ' . __('du cycle', __FILE__) . '), ' . __('aucun lancement', __FILE__));
-					$thermostat->setCache('lastState', 'stop');
-					$thermostat->stopThermostat();
-					$thermostat->save();
-					return;
+				$thresholdHeatHot = $thermostat->getConfiguration('threshold_heathot', 100);
+				$isRadiatorHot = ($thermostat->getCache('last_power', 0) >= $thresholdHeatHot && in_array($thermostat->getCache('lastState', 'stop'), array('heat', 'cool')));
+				if ($isRadiatorHot) {
+					// Radiateur déjà chaud : on compare simplement avec la fin du cycle
+					if ($timeUntilStop <= $cycle) {
+						log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Smartstop : radiateur chaud, arrêt prévu dans', __FILE__) . ' ' . round($timeUntilStop) . ' min < ' . __('cycle', __FILE__) . ' ' . $cycle . ' min, ' . __('aucun lancement', __FILE__));
+						$thermostat->setCache('lastState', 'stop');
+						$thermostat->stopThermostat();
+						$thermostat->save();
+						return;
+					}
+				} else {
+					// Radiateur froid : il faut le temps de montée en température avant que le cycle soit utile
+					$minHeatDuration = round(($thresholdHeatHot * $cycle) / 100);
+					if ($timeUntilStop <= $minHeatDuration) {
+						log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Smartstop : radiateur froid, arrêt prévu dans', __FILE__) . ' ' . round($timeUntilStop) . ' min, ' . __('radiateur chaud après', __FILE__) . ' ' . $minHeatDuration . ' min (' . $thresholdHeatHot . '% ' . __('du cycle', __FILE__) . '), ' . __('aucun lancement', __FILE__));
+						$thermostat->setCache('lastState', 'stop');
+						$thermostat->stopThermostat();
+						$thermostat->save();
+						return;
+					}
 				}
 			}
 		}
