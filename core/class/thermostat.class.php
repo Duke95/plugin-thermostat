@@ -332,6 +332,22 @@ class thermostat extends eqLogic {
 		$thermostat->setCache('lastTempOut', $temp_out);
 		$thermostat->setConfiguration('endDate', date('Y-m-d H:i:s', strtotime('+' . ceil($cycle * 0.9) . ' min ' . date('Y-m-d H:i:s'))));
 		log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Durée du cycle', __FILE__) . '  : ' . $duration);
+
+		// Smartstop : si un arrêt agenda est prévu avant la fin du prochain cycle, on ne relance pas
+		if ($thermostat->getConfiguration('smart_start') == 1) {
+			$nextStopDate = $thermostat->getNextStopDate();
+			if ($nextStopDate !== null) {
+				$endOfCycle = strtotime('+' . $cycle . ' min ' . date('Y-m-d H:i:s'));
+				if (strtotime($nextStopDate) <= $endOfCycle) {
+					log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Smartstop : arrêt prévu avant la fin du cycle', __FILE__) . ' (' . $nextStopDate . ' <= ' . date('Y-m-d H:i:s', $endOfCycle) . '), ' . __('aucun lancement', __FILE__));
+					$thermostat->setCache('lastState', 'stop');
+					$thermostat->stopThermostat();
+					$thermostat->save();
+					return;
+				}
+			}
+		}
+
 		if (($thermostat->getConfiguration('stove_boiler') == 0 && $temporal_data['power'] < $thermostat->getConfiguration('minCycleDuration', 5)) || (($thermostat->getCache('lastState') == 'heat' && $temporal_data['power'] < 1) || ($thermostat->getCache('lastState') != 'heat' && $temporal_data['power'] < $thermostat->getConfiguration('minCycleDuration', 5)))) {
 			log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Durée du cycle trop courte, aucun lancement', __FILE__));
 			$thermostat->setCache('lastState', 'stop');
@@ -855,6 +871,90 @@ class thermostat extends eqLogic {
 				$this->reschedule($next['schedule'], false, $next);
 			}
 		}
+	}
+
+	public function getNextStopDate() {
+		if ($this->getConfiguration('engine', 'temporal') != 'temporal') {
+			return null;
+		}
+		try {
+			$plugin = plugin::byId('calendar');
+			if (!is_object($plugin) || $plugin->isActive() != 1) {
+				return null;
+			}
+		} catch (Exception $ex) {
+			return null;
+		}
+		if (!class_exists('calendar_event')) {
+			return null;
+		}
+		$thermostatCmd = $this->getCmd(null, 'thermostat');
+		$nextStop = null;
+		// Recherche dans les événements liés aux modes
+		foreach ($this->getCmd(null, 'modeAction', null, true) as $mode) {
+			if (!is_object($mode)) {
+				continue;
+			}
+			$events = calendar_event::searchByCmd($mode->getId());
+			if (!is_array($events)) {
+				continue;
+			}
+			foreach ($events as $event) {
+				$calendar = $event->getEqLogic();
+				$stateCalendar = $calendar->getCmd(null, 'state');
+				if ($calendar->getIsEnable() == 0 || (is_object($stateCalendar) && $stateCalendar->execCmd() != 1)) {
+					continue;
+				}
+				// On cherche la prochaine fin d'événement (position 'end')
+				$isInEndActions = false;
+				foreach ($event->getCmd_param('end') as $action) {
+					if ($action['cmd'] == '#' . $mode->getId() . '#') {
+						$isInEndActions = true;
+						break;
+					}
+				}
+				if (!$isInEndActions) {
+					continue;
+				}
+				$nextOccurence = $event->nextOccurrence('end', true);
+				if (isset($nextOccurence['date']) && $nextOccurence['date'] != '' && strtotime($nextOccurence['date']) > strtotime('now')) {
+					if ($nextStop == null || strtotime($nextOccurence['date']) < strtotime($nextStop)) {
+						$nextStop = $nextOccurence['date'];
+					}
+				}
+			}
+		}
+		// Recherche dans les événements liés directement à la commande thermostat
+		$events = calendar_event::searchByCmd($thermostatCmd->getId());
+		if (is_array($events)) {
+			foreach ($events as $event) {
+				$calendar = $event->getEqLogic();
+				$stateCalendar = $calendar->getCmd(null, 'state');
+				if ($calendar->getIsEnable() == 0 || (is_object($stateCalendar) && $stateCalendar->execCmd() != 1)) {
+					continue;
+				}
+				$isInEndActions = false;
+				foreach ($event->getCmd_param('end') as $action) {
+					if ($action['cmd'] == '#' . $thermostatCmd->getId() . '#') {
+						$isInEndActions = true;
+						break;
+					}
+				}
+				if (!$isInEndActions) {
+					continue;
+				}
+				$nextOccurence = $event->nextOccurrence('end', true);
+				if (isset($nextOccurence['date']) && $nextOccurence['date'] != '' && strtotime($nextOccurence['date']) > strtotime('now')) {
+					if ($nextStop == null || strtotime($nextOccurence['date']) < strtotime($nextStop)) {
+						$nextStop = $nextOccurence['date'];
+					}
+				}
+			}
+		}
+		if ($nextStop !== null) {
+			log::add(__CLASS__, 'debug', $this->getHumanName() . ' ' . __('Smartstop : prochain arrêt agenda détecté', __FILE__) . ' : ' . $nextStop);
+		}
+		return $nextStop;
 	}
 
 	public function preRemove() {
