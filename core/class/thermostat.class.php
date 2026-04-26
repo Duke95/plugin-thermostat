@@ -340,6 +340,9 @@ class thermostat extends eqLogic {
 			if ($nextStopDate !== null) {
 				$timeUntilStop = (strtotime($nextStopDate) - strtotime('now')) / 60;
 				$thresholdHeatHot = $thermostat->getConfiguration('threshold_heathot', 100);
+				if ($thresholdHeatHot === '' || $thresholdHeatHot === null) {
+					$thresholdHeatHot = 100;
+				}
 				$isRadiatorHot = ($thermostat->getCache('last_power', 0) >= $thresholdHeatHot && in_array($thermostat->getCache('lastState', 'stop'), array('heat', 'cool')));
 				if ($isRadiatorHot) {
 					// Radiateur déjà chaud : on compare simplement avec la fin du cycle
