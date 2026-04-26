@@ -334,7 +334,7 @@ class thermostat extends eqLogic {
 		log::add(__CLASS__, 'debug', $thermostat->getHumanName() . ' ' . __('Durée du cycle', __FILE__) . '  : ' . $duration);
 
 		// Smartstop : si un arrêt agenda est prévu avant la fin du prochain cycle, on ne relance pas
-		if ($thermostat->getConfiguration('smart_start') == 1) {
+		if ($thermostat->getConfiguration('smart_stop') == 1) {
 			$nextStopDate = $thermostat->getNextStopDate();
 			if ($nextStopDate !== null) {
 				$endOfCycle = strtotime('+' . $cycle . ' min ' . date('Y-m-d H:i:s'));
@@ -1019,6 +1019,9 @@ class thermostat extends eqLogic {
 		}
 		if ($this->getConfiguration('smart_start') === '') {
 			$this->setConfiguration('smart_start', 1);
+		}
+		if ($this->getConfiguration('smart_stop') === '') {
+			$this->setConfiguration('smart_stop', 0);
 		}
 		if ($this->getConfiguration('cycle') < 15) {
 			throw new Exception(__('Le temps de cycle doit être supérieur à 15 minutes', __FILE__));

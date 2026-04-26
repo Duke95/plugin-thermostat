@@ -143,6 +143,8 @@
         "Décocher la case pour désactiver l'auto-apprentissage (les coefficients ci-dessous devront donc être renseignés manuellement)": "Décocher la case pour désactiver l'auto-apprentissage (les coefficients ci-dessous devront donc être renseignés manuellement)",
         "Smart-start": "Smart-start",
         "Autoriser le thermostat à démarrer avant l’heure afin que la température atteigne la consigne à l’heure voulue. Ne fonctionne que si le thermostat est géré par le plugin agenda": "Autoriser le thermostat à démarrer avant l’heure afin que la température atteigne la consigne à l’heure voulue. Ne fonctionne que si le thermostat est géré par le plugin agenda",
+        "Smart-stop": "Smart-stop",
+        "Ne pas relancer un cycle de chauffe si un arrêt est programmé dans l'agenda avant la fin du prochain cycle. Ne fonctionne que si le thermostat est géré par le plugin agenda": "Non riavviare un ciclo di riscaldamento se un arresto è programmato nell'agenda prima della fine del prossimo ciclo. Funziona solo se il termostato è gestito dal plugin agenda",
         "Pour une meilleure régulation il est conseillé de ne pas toucher à ces coefficients car ils sont calculés et mis à jour automatiquement au fur et à mesure de l'auto-apprentissage.": "Pour une meilleure régulation il est conseillé de ne pas toucher à ces coefficients car ils sont calculés et mis à jour automatiquement au fur et à mesure de l'auto-apprentissage",
         "Coefficient chauffage": "Riscaldamento coefficiente",
         "Cette valeur est multipliée par l’écart entre la consigne et la température intérieure pour déduire le temps de chauffage": "Cette valeur est multipliée par l’écart entre la consigne et la température intérieure pour déduire le temps de chauffage",

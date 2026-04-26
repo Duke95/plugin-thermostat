@@ -143,6 +143,8 @@
         "Décocher la case pour désactiver l'auto-apprentissage (les coefficients ci-dessous devront donc être renseignés manuellement)": "Deaktivieren Sie das Kontrollkästchen, um das Selbstlernen zu deaktivieren (die folgenden Koeffizienten müssen daher manuell eingegeben werden)",
         "Smart-start": "Intelligenter Start",
         "Autoriser le thermostat à démarrer avant l’heure afin que la température atteigne la consigne à l’heure voulue. Ne fonctionne que si le thermostat est géré par le plugin agenda": "Lassen Sie den Thermostat vorzeitig starten, damit die Temperatur zum gewünschten Zeitpunkt den Sollwert erreicht. Funktioniert nur, wenn der Thermostat vom Agenda-Plugin verwaltet wird",
+        "Smart-stop": "Intelligenter Stopp",
+        "Ne pas relancer un cycle de chauffe si un arrêt est programmé dans l'agenda avant la fin du prochain cycle. Ne fonctionne que si le thermostat est géré par le plugin agenda": "Keinen Heizzyklus starten, wenn ein Stopp im Kalender vor dem Ende des nächsten Zyklus geplant ist. Funktioniert nur, wenn der Thermostat vom Agenda-Plugin verwaltet wird",
         "Pour une meilleure régulation il est conseillé de ne pas toucher à ces coefficients car ils sont calculés et mis à jour automatiquement au fur et à mesure de l'auto-apprentissage.": "Zur besseren Regulierung ist es ratsam, diese Koeffizienten nicht zu berühren, da sie beim Selbstlernen automatisch berechnet und aktualisiert werden",
         "Coefficient chauffage": "Heizungs Koeffizient",
         "Cette valeur est multipliée par l’écart entre la consigne et la température intérieure pour déduire le temps de chauffage": "Dieser Wert wird mit der Differenz zwischen Sollwert und Innentemperatur multipliziert, um die Heizzeit abzuleiten",

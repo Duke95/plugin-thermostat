@@ -563,6 +563,14 @@ $eqLogics = eqLogic::byType($plugin->getId());
 										<input type="checkbox" class="eqLogicAttr tooltips" data-l1key="configuration" data-l2key="smart_start" checked />
 									</div>
 								</div>
+								<div class="form-group">
+									<label class="col-sm-4 control-label">{{Smart-stop}}
+										<sup><i class="fas fa-question-circle tooltips" title="{{Ne pas relancer un cycle de chauffe si un arrêt est programmé dans l'agenda avant la fin du prochain cycle. Ne fonctionne que si le thermostat est géré par le plugin agenda}}"></i></sup>
+									</label>
+									<div class="col-sm-7">
+										<input type="checkbox" class="eqLogicAttr tooltips" data-l1key="configuration" data-l2key="smart_stop" />
+									</div>
+								</div>
 							</div>
 
 							<br>
